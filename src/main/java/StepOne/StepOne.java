@@ -23,11 +23,20 @@ public class StepOne {
 
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
-            StringTokenizer itr = new StringTokenizer(value.toString());
-            while (itr.hasMoreTokens()) {
-                word.set(itr.nextToken());
-                context.write(word, one);
+            String[] line=value.toString().split("\t");
+            String[] grams3=line[0].split(" ");
+//            for(String word:line){
+//                System.out.println(word);
+//            }
+            System.out.println("\n\n\nNow gram\n\n\n");
+            for(String gram:grams3){
+                System.out.println(gram);
             }
+//            StringTokenizer itr = new StringTokenizer(value.toString());
+//            while (itr.hasMoreTokens()) {
+//                word.set(itr.nextToken());
+//                context.write(word, one);
+//            }
         }
     }
 
