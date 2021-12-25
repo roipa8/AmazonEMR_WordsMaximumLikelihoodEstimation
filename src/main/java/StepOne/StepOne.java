@@ -1,16 +1,18 @@
 package StepOne;
 
 import org.apache.hadoop.conf.Configuration;
+
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Partitioner;
-import org.apache.hadoop.mapreduce.Reducer;
+
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+
 
 import java.io.IOException;
 import java.util.StringTokenizer;
@@ -23,7 +25,11 @@ public class StepOne {
 
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException,  InterruptedException {
-            String[] line=value.toString().split("\t");
+            /*String[] lines=value.toString().split("\n");
+            for(String line:lines){
+                System.out.println(line);
+           }*/
+         /*   String[] line=value.toString().split("\t");
             String[] grams3=line[0].split(" ");
 //            for(String word:line){
 //                System.out.println(word);
@@ -35,7 +41,7 @@ public class StepOne {
 //            StringTokenizer itr = new StringTokenizer(value.toString());
 //            while (itr.hasMoreTokens()) {
 //                word.set(itr.nextToken());
-//                context.write(word, one);
+//                context.write(word, one);*/
 //            }
         }
     }
@@ -61,7 +67,7 @@ public class StepOne {
 
     public static void main (String[] args) throws Exception {
         Configuration jobConf = new Configuration();
-        Job job = Job.getInstance(jobConf);
+        Job job = Job.getInstance(jobConf,"step one");
         job.setJarByClass(StepOne.class);
         job.setMapperClass(MapperClass.class);
         job.setPartitionerClass(PartitionerClass.class);
@@ -69,6 +75,8 @@ public class StepOne {
         job.setReducerClass(ReducerClass.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
+        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
