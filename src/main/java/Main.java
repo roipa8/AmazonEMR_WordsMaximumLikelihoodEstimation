@@ -1,3 +1,4 @@
+/*
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
@@ -47,7 +48,7 @@ public class Main {
                 .withPlacement(new PlacementType("us-east-1a"));
 
         RunJobFlowRequest runFlowRequest = new RunJobFlowRequest()
-                .withName("jobname5")
+                .withName("jobname6")
                 .withInstances(instances)
                 .withSteps(stepConfig)
                 .withServiceRole("EMR_DefaultRole")
@@ -59,3 +60,4 @@ public class Main {
         System.out.println("Ran job flow with id: " + jobFlowId);
     }
 }
+*/
