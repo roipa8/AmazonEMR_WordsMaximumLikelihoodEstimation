@@ -22,17 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class StepFour {
-//    protected static int wordsInCorpus = 0;
-    protected static AtomicBoolean isSetUp = new AtomicBoolean(false);
     public static class MapperClass
-            extends Mapper<Text, MapWritable, Text, DoubleWritable> {
-
-//        public void setup(Mapper.Context context) throws IOException, InterruptedException {
-//            if(isSetUp.compareAndSet(false, true)){
-//                super.setup(context);
-//                wordsInCorpus=(context.getConfiguration().getInt("wordsInCorpus",0));
-//            }
-//        }
+            extends Mapper<Text, MapWritable, Result, DoubleWritable> {
 
         public void map(Text key, MapWritable value, Context context
         ) throws IOException, InterruptedException {
@@ -45,35 +36,19 @@ public class StepFour {
             double k2 = (Math.log(n2+1)+1)/(Math.log(n2+1)+2);
             double k3 = (Math.log(n3+1)+1)/(Math.log(n3+1)+2);
             double finalProbability = k3*(n3/c2)+(1-k3)*k2*(n2/c1)+(1-k3)*(1-k2)*(n1/cO);
-            context.write(key,new DoubleWritable(finalProbability));
-//            IntWritable occurrences = (IntWritable) value.get(new Text("w1w2w3"));
-//            wordsInCorpus = wordsInCorpus + occurrences.get();
-//            wordsInCorpus.getAndAdd(occurrences.get());
-//            context.write(key,value);
+            context.write(new Result(key.toString(),finalProbability),new DoubleWritable(finalProbability));
         }
     }
 
     public static class ReducerMap
-            extends Reducer<Text,DoubleWritable,Text, DoubleWritable> {
+            extends Reducer<Result,DoubleWritable,Result, DoubleWritable> {
 
-        public void reduce(Text key, Iterable<DoubleWritable> values,
+        public void reduce(Result key, Iterable<DoubleWritable> values,
                            Context context
         ) throws IOException, InterruptedException {
             for(DoubleWritable value: values){
                 context.write(key, value);
             }
-//            for(MapWritable map : values){//I HAVE ONLY ONE KEY OF 3GRAM
-//                double n1 = ((IntWritable)map.get(new Text("w3"))).get();
-//                double n2 = ((IntWritable)map.get(new Text("w2w3"))).get();
-//                double n3 = ((IntWritable)map.get(new Text("w1w2w3"))).get();
-//                double cO = wordsInCorpus;
-//                double c1 = ((IntWritable)map.get(new Text("w2"))).get();
-//                double c2 = ((IntWritable)map.get(new Text("w1w2"))).get();
-//                double k2 = (Math.log(n2+1)+1)/(Math.log(n2+1)+2);
-//                double k3 = (Math.log(n3+1)+1)/(Math.log(n3+1)+2);
-//                double finalProbability = k3*(n3/c2)+(1-k3)*k2*(n2/c1)+(1-k3)*(1-k2)*(n1/cO);
-//                context.write(key,new DoubleWritable(finalProbability));
-//            }
         }
     }
 
@@ -84,9 +59,7 @@ public class StepFour {
         job.setMapperClass(StepFour.MapperClass.class);
         job.setCombinerClass(StepFour.ReducerMap.class);
         job.setReducerClass(StepFour.ReducerMap.class);
-        job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(DoubleWritable.class);
-        job.setOutputKeyClass(Text.class);
+        job.setOutputKeyClass(Result.class);
         job.setOutputValueClass(DoubleWritable.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
