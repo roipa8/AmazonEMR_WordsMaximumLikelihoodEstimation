@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class StepThree {
     protected static int w3Sum = 0;
     protected static AtomicBoolean isSetUp = new AtomicBoolean(false);
+    protected static int wordsInCorpus = 0;
     public static class MapperClass
             extends Mapper<Text, MapWritable, Text, MapWritable> {
 
@@ -37,6 +38,7 @@ public class StepThree {
 
             MapWritable map=new MapWritable();
             IntWritable occurrences = (IntWritable) value.get(new Text("w1w2w3"));
+            wordsInCorpus = wordsInCorpus + occurrences.get();
             map.put(new Text("occurrences"),occurrences);
 
             context.write(new Text(oneGramString),map);
@@ -67,6 +69,7 @@ public class StepThree {
             else{
                 for(MapWritable map : values){//I HAVE ONLY ONE KEY OF 3GRAM
                     map.put(new Text("w3"),new IntWritable(w3Sum));
+                    map.put(new Text("words"), new IntWritable(wordsInCorpus));
                     //SHIFT LEFT WITH ENGLISH!! TODO SHIFT RIGHT WITH HEB
                     String originalThreeGram=threeGram[1]+" "+threeGram[2]+" "+threeGram[0];
                     context.write(new Text(originalThreeGram),map);
