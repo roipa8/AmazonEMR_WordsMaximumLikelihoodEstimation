@@ -3,12 +3,14 @@ package StepOne;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MapFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -21,17 +23,27 @@ public class StepOne {
 
     protected static int w1w2Sum = 0;
     protected static AtomicBoolean isSetUp = new AtomicBoolean(false);
+    private static final char HEBREW_FIRST = (char) 1488;
+    private static final char HEBREW_LAST = (char) 1514;
 
     public static class MapperClass
-            extends Mapper<Object, Text, Text, MapWritable>{
-
-        public void map(Object key, Text value, Context context
+            extends Mapper<LongWritable, Text, Text, MapWritable>{
+        protected boolean isLegalTrigram(String[] s){
+            for(String str: s) {
+                for (int i = 0; i < str.length(); i++) {
+                    char c = str.charAt(i);
+                    if (c != ' ' && (c < HEBREW_FIRST || c > HEBREW_LAST))
+                        return false;
+                }
+            }
+            return true;
+        }
+        public void map(LongWritable key, Text value, Context context
         ) throws IOException, InterruptedException {
             String[] line = value.toString().split("\t");
-            if (line.length==0){
-                return;
-            }
             String[] threeGram = line[0].split(" ");
+            if(threeGram.length != 3 || !isLegalTrigram(threeGram))
+                return;
             int occurrences = Integer.parseInt(line[2]);
 
             //<w1w2w3,data>
@@ -99,11 +111,14 @@ public class StepOne {
         job.setMapperClass(MapperClass.class);
         //job.setCombinerClass(StepOne.ReducerMap.class);
         job.setReducerClass(StepOne.ReducerMap.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(MapWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(MapWritable.class);
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        FileInputFormat.addInputPath(job, new Path(args[1]));
+        FileOutputFormat.setOutputPath(job, new Path(args[2]));
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        job.setInputFormatClass(SequenceFileInputFormat.class);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
