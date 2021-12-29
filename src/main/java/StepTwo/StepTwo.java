@@ -25,12 +25,13 @@ public class StepTwo {
         ) throws IOException, InterruptedException {
             String[] threeGram = key.toString().split(" ");
 
-
+            //SHIFT LEFT WITH ENGLISH!! TODO SHIFT RIGHT WITH HEB
+            String threeGramString=threeGram[1]+" "+threeGram[2]+" "+threeGram[0];
             //<w1w2w3,data>
-            context.write(new Text(key),value);
+            context.write(new Text(threeGramString),value);
 
-            //<*w2w3,data>
-            String twoGramString="* "+threeGram[0]+" "+threeGram[1];
+            //<*w2w3,data>//SHIFT LEFT WITH ENGLISH!! TODO SHIFT RIGHT WITH HEB
+            String twoGramString=threeGram[0]+" "+threeGram[1]+" *";
 
             MapWritable map2=new MapWritable();
             IntWritable occurrences = (IntWritable) value.get(new Text("w1w2w3"));
@@ -52,17 +53,19 @@ public class StepTwo {
         ) throws IOException, InterruptedException {
             String[] threeGram = key.toString().split(" ");
             int sum = 0;
-            if(threeGram[0].equals("*")){
+            if(threeGram[2].equals("*")){
                 for(MapWritable map : values){
                     IntWritable occurrences = (IntWritable) map.get(new Text("occurrences"));
                     sum += occurrences.get();
                 }
-                w2w3Sum =sum;
+                w2w3Sum = sum;
             }
             else{
                 for(MapWritable map : values){//I HAVE ONLY ONE KEY OF 3GRAM
                     map.put(new Text("w2w3"),new IntWritable(w2w3Sum));
-                    context.write(key,map);
+                    //SHIFT RIGHT WITH ENGLISH!! TODO SHIFT LEFT WITH HEB
+                    String threeGramString=threeGram[2]+" "+threeGram[0]+" "+threeGram[1];
+                    context.write(new Text(threeGramString),map);
                 }
             }
         }

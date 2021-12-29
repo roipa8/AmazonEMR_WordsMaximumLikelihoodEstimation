@@ -68,7 +68,7 @@ public class StepOne {
                     IntWritable occurrences = (IntWritable) map.get(new Text("occurrences"));
                     sum += occurrences.get();
                 }
-                w1w2Sum=sum;
+                w1w2Sum = sum;
             }
             else{
                 for(MapWritable map : values){
