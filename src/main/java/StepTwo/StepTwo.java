@@ -9,23 +9,22 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.MapFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import java.io.IOException;
 
 
-public class StepOne {
-
-    protected static int w1w2Sum = 0;
+public class StepTwo {
 
     public static class MapperClass
-            extends Mapper<Object, Text, Text, MapWritable>{
+            extends Mapper<Text, MapWritable, Text, MapWritable>{
 
-        public void map(Object key, Text value, Context context
+        public void map(Text key, MapWritable value, Context context
         ) throws IOException, InterruptedException {
-            String[] line = value.toString().split("\t");
+            System.out.println("HELLO");
+          /*  String[] line = value.toString().split("\t");
             if (line.length==0){
                 return;
             }
@@ -47,16 +46,13 @@ public class StepOne {
 
             map2.put(new Text("occurrences"),new IntWritable(occurrences));
 
-            context.write(new Text(twoGramString),map2);
+            context.write(new Text(twoGramString),map2);*/
         }
     }
 
     public static class ReducerMap
             extends Reducer<Text,MapWritable,Text,MapWritable> {
-        public  void setup(Context context) throws IOException, InterruptedException {
-            super.setup(context);
-            w1w2Sum=context.getConfiguration().getInt("w1w2Sum",0);
-        }
+        private IntWritable w1w2Sum = new IntWritable(0);
 
         public void reduce(Text key, Iterable<MapWritable> values,
                            Context context
@@ -68,7 +64,7 @@ public class StepOne {
                     IntWritable occurrences = (IntWritable) map.get(new Text("occurrences"));
                     sum += occurrences.get();
                 }
-                w1w2Sum=sum;
+                w1w2Sum.set(sum);
             }
             else{
                 for(MapWritable map : values){
@@ -79,7 +75,7 @@ public class StepOne {
                 MapWritable map=new MapWritable();
 
                 map.put(new Text("w1w2w3"),new IntWritable(sum));
-                map.put(new Text("w1w2"),new IntWritable(w1w2Sum));
+                map.put(new Text("w1w2"),new IntWritable(w1w2Sum.get()));
 
                 context.write(key,map);
 
@@ -90,16 +86,17 @@ public class StepOne {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "step one");
+        Job job = Job.getInstance(conf, "step two");
         job.setJarByClass(StepOne.class);
         job.setMapperClass(MapperClass.class);
-        //job.setCombinerClass(StepOne.ReducerMap.class);
-        job.setReducerClass(StepOne.ReducerMap.class);
+        job.setCombinerClass(StepTwo.ReducerMap.class);
+        job.setReducerClass(StepTwo.ReducerMap.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(MapWritable.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        job.setInputFormatClass(SequenceFileInputFormat.class);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
