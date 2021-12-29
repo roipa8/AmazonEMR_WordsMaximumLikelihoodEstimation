@@ -1,4 +1,4 @@
-package StepOne;
+package StepTwo;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -17,77 +17,61 @@ import java.io.IOException;
 
 
 public class StepTwo {
-
+    protected static int w2w3Sum = 0;
     public static class MapperClass
             extends Mapper<Text, MapWritable, Text, MapWritable>{
 
         public void map(Text key, MapWritable value, Context context
         ) throws IOException, InterruptedException {
-            System.out.println("HELLO");
-          /*  String[] line = value.toString().split("\t");
-            if (line.length==0){
-                return;
-            }
-            String[] threeGram = line[0].split(" ");
-            int occurrences = Integer.parseInt(line[2]);
+            String[] threeGram = key.toString().split(" ");
+
 
             //<w1w2w3,data>
-            String threeGramString=threeGram[0]+" "+threeGram[1]+" "+threeGram[2];
-            MapWritable map1=new MapWritable();
+            context.write(new Text(key),value);
 
-            map1.put(new Text("w1w2w3"),new IntWritable(occurrences));
-
-            context.write(new Text(threeGramString),map1);
-
-            //<w1w2*,data>
-            String twoGramString=threeGram[0]+" "+threeGram[1]+" "+"*";
+            //<*w2w3,data>
+            String twoGramString="* "+threeGram[0]+" "+threeGram[1];
 
             MapWritable map2=new MapWritable();
+            IntWritable occurrences = (IntWritable) value.get(new Text("w1w2w3"));
+            map2.put(new Text("occurrences"),occurrences);
 
-            map2.put(new Text("occurrences"),new IntWritable(occurrences));
-
-            context.write(new Text(twoGramString),map2);*/
+            context.write(new Text(twoGramString),map2);
         }
     }
 
     public static class ReducerMap
             extends Reducer<Text,MapWritable,Text,MapWritable> {
-        private IntWritable w1w2Sum = new IntWritable(0);
+        public  void setup(Context context) throws IOException, InterruptedException {
+            super.setup(context);
+            w2w3Sum=context.getConfiguration().getInt("w2w3Sum",0);
+        }
 
         public void reduce(Text key, Iterable<MapWritable> values,
                            Context context
         ) throws IOException, InterruptedException {
             String[] threeGram = key.toString().split(" ");
             int sum = 0;
-            if(threeGram[2].equals("*")){
+            if(threeGram[0].equals("*")){
                 for(MapWritable map : values){
                     IntWritable occurrences = (IntWritable) map.get(new Text("occurrences"));
                     sum += occurrences.get();
                 }
-                w1w2Sum.set(sum);
+                w2w3Sum =sum;
             }
             else{
-                for(MapWritable map : values){
-                    IntWritable occurrences = (IntWritable) map.get(new Text("w1w2w3"));
-                    sum += occurrences.get();
+                for(MapWritable map : values){//I HAVE ONLY ONE KEY OF 3GRAM
+                    map.put(new Text("w2w3"),new IntWritable(w2w3Sum));
+                    context.write(key,map);
                 }
-
-                MapWritable map=new MapWritable();
-
-                map.put(new Text("w1w2w3"),new IntWritable(sum));
-                map.put(new Text("w1w2"),new IntWritable(w1w2Sum.get()));
-
-                context.write(key,map);
-
             }
-
         }
     }
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "step two");
-        job.setJarByClass(StepOne.class);
+        job.setJarByClass(StepTwo.class);
         job.setMapperClass(MapperClass.class);
         job.setCombinerClass(StepTwo.ReducerMap.class);
         job.setReducerClass(StepTwo.ReducerMap.class);
