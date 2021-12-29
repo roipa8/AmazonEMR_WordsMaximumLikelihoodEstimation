@@ -14,11 +14,13 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class StepTwo {
     protected static int w2w3Sum = 0;
     protected static int w2Sum = 0;
+    protected static AtomicBoolean isSetUp = new AtomicBoolean(false);
     public static class MapperClass
             extends Mapper<Text, MapWritable, Text, MapWritable>{
 
@@ -53,10 +55,12 @@ public class StepTwo {
 
     public static class ReducerMap
             extends Reducer<Text,MapWritable,Text,MapWritable> {
-        public  void setup(Context context) throws IOException, InterruptedException {
-            super.setup(context);
-            w2w3Sum=context.getConfiguration().getInt("w2w3Sum",0);
-            w2Sum=context.getConfiguration().getInt("w2Sum",0);
+        public void setup(Context context) throws IOException, InterruptedException {
+            if(isSetUp.compareAndSet(false,true)){
+                super.setup(context);
+                w2w3Sum=context.getConfiguration().getInt("w2w3Sum",0);
+                w2Sum=context.getConfiguration().getInt("w2Sum",0);
+            }
         }
 
         public void reduce(Text key, Iterable<MapWritable> values,
