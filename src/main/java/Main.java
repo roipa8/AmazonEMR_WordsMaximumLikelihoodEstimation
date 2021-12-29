@@ -20,7 +20,7 @@ public class Main {
                 .withCredentials(credentials)
                 .build();
 
-        //StepOne
+       /* //StepOne
         HadoopJarStepConfig hadoopJarStepOne = new HadoopJarStepConfig()
                 .withJar(bucket+"/"+"StepOne.jar")
                 .withMainClass("StepOne")
@@ -30,8 +30,8 @@ public class Main {
                 .withName("StepOne")
                 .withHadoopJarStep(hadoopJarStepOne)
                 .withActionOnFailure("TERMINATE_JOB_FLOW");
-
-        /*//StepTwo
+*/
+        //StepTwo
         HadoopJarStepConfig hadoopJarStepTwo = new HadoopJarStepConfig()
                 .withJar(bucket+"/"+"StepTwo.jar") //
                 .withMainClass("StepTwo")
@@ -63,7 +63,6 @@ public class Main {
                 .withName("StepFour")
                 .withHadoopJarStep(hadoopJarStepFour)
                 .withActionOnFailure("TERMINATE_JOB_FLOW");
-*/
 
         JobFlowInstancesConfig instances = new JobFlowInstancesConfig()
                 .withInstanceCount(2)
@@ -75,7 +74,7 @@ public class Main {
         RunJobFlowRequest runFlowRequest = new RunJobFlowRequest()
                 .withName("Test2")
                 .withInstances(instances)
-                .withSteps(stepConfigOne)//, stepConfigTwo, stepConfigThree, stepConfigFour
+                .withSteps(stepConfigTwo, stepConfigThree, stepConfigFour)//stepConfigOne, stepConfigTwo, stepConfigThree, stepConfigFour
                 .withServiceRole("EMR_DefaultRole")
                 .withJobFlowRole("EMR_EC2_DefaultRole")
                 .withReleaseLabel("emr-5.11.0")
