@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.ec2.model.InstanceType;
 public class Main {
     public static void main (String[]args){
         String bucket="s3://dspsbucket1";
+        String localAggregation = "on";
 
         BasicConfigurator.configure();
         AWSCredentialsProvider credentials = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
@@ -20,22 +21,21 @@ public class Main {
                 .withCredentials(credentials)
                 .build();
 
-       /* //StepOne
+        //StepOne
         HadoopJarStepConfig hadoopJarStepOne = new HadoopJarStepConfig()
                 .withJar(bucket+"/"+"StepOne.jar")
                 .withMainClass("StepOne")
-                .withArgs("s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data", bucket+"/output1/");
+                .withArgs(localAggregation,"s3://datasets.elasticmapreduce/ngrams/books/20090715/heb-all/3gram/data", bucket+"/output1/");
 
         StepConfig stepConfigOne = new StepConfig()
                 .withName("StepOne")
                 .withHadoopJarStep(hadoopJarStepOne)
                 .withActionOnFailure("TERMINATE_JOB_FLOW");
-*/
         //StepTwo
         HadoopJarStepConfig hadoopJarStepTwo = new HadoopJarStepConfig()
                 .withJar(bucket+"/"+"StepTwo.jar") //
                 .withMainClass("StepTwo")
-                .withArgs(bucket+"/output1/", bucket+"/output2/");
+                .withArgs(localAggregation,bucket+"/output1/", bucket+"/output2/");
 
         StepConfig stepConfigTwo = new StepConfig()
                 .withName("StepTwo")
@@ -46,7 +46,7 @@ public class Main {
         HadoopJarStepConfig hadoopJarStepThree = new HadoopJarStepConfig()
                 .withJar(bucket+"/"+"StepThree.jar") //
                 .withMainClass("StepThree")
-                .withArgs(bucket+"/output2/", bucket+"/output3/");
+                .withArgs(localAggregation, bucket+"/output2/", bucket+"/output3/");
 
         StepConfig stepConfigThree = new StepConfig()
                 .withName("StepThree")
@@ -57,7 +57,7 @@ public class Main {
         HadoopJarStepConfig hadoopJarStepFour = new HadoopJarStepConfig()
                 .withJar(bucket+"/"+"StepFour.jar") //
                 .withMainClass("StepFour")
-                .withArgs(bucket+"/output3/", bucket+"/output4/");
+                .withArgs(localAggregation,bucket+"/output3/", bucket+"/output4/");
 
         StepConfig stepConfigFour = new StepConfig()
                 .withName("StepFour")
@@ -72,9 +72,9 @@ public class Main {
                 .withKeepJobFlowAliveWhenNoSteps(false)
                 .withPlacement(new PlacementType("us-east-1a"));
         RunJobFlowRequest runFlowRequest = new RunJobFlowRequest()
-                .withName("Test2")
+                .withName("With Local Aggregation")
                 .withInstances(instances)
-                .withSteps(stepConfigTwo, stepConfigThree, stepConfigFour)//stepConfigOne, stepConfigTwo, stepConfigThree, stepConfigFour
+                .withSteps(stepConfigOne, stepConfigTwo, stepConfigThree, stepConfigFour)
                 .withServiceRole("EMR_DefaultRole")
                 .withJobFlowRole("EMR_EC2_DefaultRole")
                 .withReleaseLabel("emr-5.11.0")

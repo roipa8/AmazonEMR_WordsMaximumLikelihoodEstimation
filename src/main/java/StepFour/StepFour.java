@@ -1,6 +1,5 @@
 package StepFour;
 
-import StepThree.StepThree;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
@@ -9,17 +8,14 @@ import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class StepFour {
     public static class MapperClass
@@ -27,6 +23,7 @@ public class StepFour {
 
         public void map(Text key, MapWritable value, Context context
         ) throws IOException, InterruptedException {
+            //prob calc
             double n1 = ((IntWritable)value.get(new Text("w3"))).get();
             double n2 = ((IntWritable)value.get(new Text("w2w3"))).get();
             double n3 = ((IntWritable)value.get(new Text("w1w2w3"))).get();
@@ -40,7 +37,7 @@ public class StepFour {
         }
     }
 
-    public static class ReducerMap
+    public static class ReducerClass
             extends Reducer<Result,DoubleWritable,Result, DoubleWritable> {
 
         public void reduce(Result key, Iterable<DoubleWritable> values,
@@ -51,18 +48,26 @@ public class StepFour {
             }
         }
     }
+    public static class PartitionerClass extends Partitioner<Result, DoubleWritable> {
+        public int getPartition(Result key, DoubleWritable value, int numPartitions) {
+            return key.hashCode() % numPartitions;
+        }
+    }
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "step four");
         job.setJarByClass(StepFour.class);
         job.setMapperClass(StepFour.MapperClass.class);
-        job.setCombinerClass(StepFour.ReducerMap.class);
-        job.setReducerClass(StepFour.ReducerMap.class);
+        if(args[1].equals("on")){
+            job.setCombinerClass(StepFour.ReducerClass.class);
+        }
+        job.setPartitionerClass(StepFour.PartitionerClass.class);
+        job.setReducerClass(StepFour.ReducerClass.class);
         job.setOutputKeyClass(Result.class);
         job.setOutputValueClass(DoubleWritable.class);
-        FileInputFormat.addInputPath(job, new Path(args[1]));
-        FileOutputFormat.setOutputPath(job, new Path(args[2]));
+        FileInputFormat.addInputPath(job, new Path(args[2]));
+        FileOutputFormat.setOutputPath(job, new Path(args[3]));
         job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
