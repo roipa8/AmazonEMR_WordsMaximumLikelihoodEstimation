@@ -74,7 +74,7 @@
  We used the "pairs method", as learned in class: the general idea is to use "*" to sort our pairs so the reduce method will recive first the pairs we will want to sum up.
  With this method we only used O(1) memory.
  
- #Result
+ # Result
 
     Pair 1 
     הוא נחשב לאחד	0.1620862570969165
