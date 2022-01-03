@@ -132,9 +132,16 @@ public class StepTwo {
             }
         }
     }
-    public static class PartitionerClass extends Partitioner<Text, MapWritable> {
+    /*public static class PartitionerClass extends Partitioner<Text, MapWritable> {
         public int getPartition(Text key, MapWritable value, int numPartitions) {
             return key.hashCode() % numPartitions;
+        }
+    }*/
+    public static class PartitionerClass extends Partitioner<Text, MapWritable> {
+        public int getPartition(Text key, MapWritable value, int numPartitions) {
+            String []threeGram=(key.toString()).split(" ");
+            String word = threeGram[0];
+            return (word.hashCode()  & Integer.MAX_VALUE) % numPartitions;
         }
     }
 

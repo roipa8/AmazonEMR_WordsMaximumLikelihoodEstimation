@@ -48,11 +48,6 @@ public class StepFour {
             }
         }
     }
-    public static class PartitionerClass extends Partitioner<Result, DoubleWritable> {
-        public int getPartition(Result key, DoubleWritable value, int numPartitions) {
-            return key.hashCode() % numPartitions;
-        }
-    }
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
@@ -62,7 +57,6 @@ public class StepFour {
         if(args[1].equals("on")){
             job.setCombinerClass(StepFour.ReducerClass.class);
         }
-        job.setPartitionerClass(StepFour.PartitionerClass.class);
         job.setReducerClass(StepFour.ReducerClass.class);
         job.setOutputKeyClass(Result.class);
         job.setOutputValueClass(DoubleWritable.class);

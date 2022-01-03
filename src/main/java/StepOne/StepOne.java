@@ -139,9 +139,16 @@ public class StepOne {
         }
     }
 
-    public static class PartitionerClass extends Partitioner<Text, MapWritable> {
+    /*public static class PartitionerClass extends Partitioner<Text, MapWritable> {
         public int getPartition(Text key, MapWritable value, int numPartitions) {
             return key.hashCode() % numPartitions;
+        }
+    }*/
+    public static class PartitionerClass extends Partitioner<Text, MapWritable> {
+        public int getPartition(Text key, MapWritable value, int numPartitions) {
+            String []threeGram=(key.toString()).split(" ");
+            String word = threeGram[0];
+            return (word.hashCode()  & Integer.MAX_VALUE) % numPartitions;
         }
     }
 
@@ -162,7 +169,7 @@ public class StepOne {
         FileInputFormat.addInputPath(job, new Path(args[2]));
         FileOutputFormat.setOutputPath(job, new Path(args[3]));
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
-        job.setInputFormatClass(TextInputFormat.class);//TODO CHANGE TO SequenceFileInputFormat
+        job.setInputFormatClass(SequenceFileInputFormat.class);//TODO CHANGE TO SequenceFileInputFormat
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

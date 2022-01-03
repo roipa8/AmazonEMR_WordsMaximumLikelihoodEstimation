@@ -12,6 +12,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import java.io.IOException;
@@ -115,7 +116,7 @@ public class StepThree {
     }
     public static class PartitionerClass extends Partitioner<Text, MapWritable> {
         public int getPartition(Text key, MapWritable value, int numPartitions) {
-            return key.hashCode() % numPartitions;
+            return numPartitions-1;
         }
     }
 
@@ -132,7 +133,7 @@ public class StepThree {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(MapWritable.class);
         FileInputFormat.addInputPath(job, new Path(args[2]));
-        FileOutputFormat.setOutputPath(job, new Path(args[3]));
+        //FileOutputFormat.setOutputPath(job, new Path(args[3]));
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
         job.setInputFormatClass(SequenceFileInputFormat.class);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
