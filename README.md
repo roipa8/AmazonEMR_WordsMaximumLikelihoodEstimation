@@ -1,7 +1,7 @@
 # AmazonEMR_WordsMaximumLikelihoodEstimation
 # Created By:
-1. Omer Golan 316356153
-2. Roi Paz 313138067
+1. Omer Golan 
+2. Roi Paz 
 
 # How To Run
 1. unzip the submission file
